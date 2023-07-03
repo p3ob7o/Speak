@@ -63,10 +63,9 @@ function sendToWhisperAPI(audioBlob) {
 }
 
 function sendToGptAPI(transcription) {
-    fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
+    fetch('/api/gpt', {
         method: 'POST',
         headers: {
-            'Authorization': 'Bearer YOUR_OPENAI_API_KEY',
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -82,6 +81,7 @@ function sendToGptAPI(transcription) {
         console.error('Error:', error);
     });
 }
+
 
 document.querySelector('button').addEventListener('click', () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
