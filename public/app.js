@@ -45,7 +45,7 @@ function handleDataAvailable(event) {
     }
 }
 
-function sendToWhisperAPI(audioBlob) {
+ffunction sendToWhisperAPI(audioBlob) {
     const reader = new FileReader();
 
     reader.onloadend = function() {
@@ -60,7 +60,12 @@ function sendToWhisperAPI(audioBlob) {
                 'audio_data': base64Audio
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Whisper API request failed');
+            }
+            return response.json();
+        })
         .then(data => {
             transcript = data.transcription;
             transcriptDisplay.textContent = 'Transcript: ' + transcript;  // Display the transcript
@@ -68,17 +73,16 @@ function sendToWhisperAPI(audioBlob) {
         })
         .catch(error => {
             console.error('Error:', error);
-            return error.text();  // Add this line to get the error response text
-        })
-        .then(errorText => {
-            console.error('Error response:', errorText);
+            if (error instanceof SyntaxError) {
+                response.text().then(errorText => {
+                    console.error('Error response:', errorText);
+                });
+            }
         });
     };
 
     reader.readAsDataURL(audioBlob);
 }
-
-
 
 
 function sendToGptAPI() {
