@@ -45,7 +45,7 @@ function handleDataAvailable(event) {
     }
 }
 
-ffunction sendToWhisperAPI(audioBlob) {
+function sendToWhisperAPI(audioBlob) {
     const reader = new FileReader();
 
     reader.onloadend = function() {
