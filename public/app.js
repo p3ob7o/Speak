@@ -1,5 +1,6 @@
 let mediaRecorder;
 let recordedBlobs;
+let recordButton = document.querySelector('button');  // Get a reference to the button
 
 function startRecording() {
     recordedBlobs = [];
@@ -18,11 +19,13 @@ function startRecording() {
         console.log('Recorder stopped: ', event);
         console.log('Recorded Blobs: ', recordedBlobs);
         sendToWhisperAPI(new Blob(recordedBlobs, {type: 'audio/webm'}));
+        recordButton.textContent = 'Start Recording';  // Change button text to 'Start Recording'
     };
 
     mediaRecorder.ondataavailable = handleDataAvailable;
     mediaRecorder.start(10);  // collect 10ms of data
     console.log('MediaRecorder started', mediaRecorder);
+    recordButton.textContent = 'Stop Recording';  // Change button text to 'Stop Recording'
 }
 
 function stopRecording() {
@@ -83,7 +86,7 @@ function sendToGptAPI(transcription) {
 }
 
 
-document.querySelector('button').addEventListener('click', () => {
+recordButton.addEventListener('click', () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         stopRecording();
     } else {
