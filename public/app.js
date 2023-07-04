@@ -68,11 +68,16 @@ function sendToWhisperAPI(audioBlob) {
         })
         .catch(error => {
             console.error('Error:', error);
+            return error.text();  // Add this line to get the error response text
+        })
+        .then(errorText => {
+            console.error('Error response:', errorText);
         });
     };
 
     reader.readAsDataURL(audioBlob);
 }
+
 
 
 
