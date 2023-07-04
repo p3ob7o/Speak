@@ -2,7 +2,7 @@
   "name": "audio-transcription-app",
   "version": "1.0.0",
   "scripts": {
-    "build": "tailwindcss build public/styles.css -o public/output.css"
+    "build": "tailwindcss build public/style.css -o public/output.css"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.0",
