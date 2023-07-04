@@ -1,6 +1,13 @@
 let mediaRecorder;
 let recordedBlobs;
 let recordButton = document.querySelector('button');  // Get a reference to the button
+let transcriptDisplay = document.createElement('p');  // Create a paragraph to display the transcript
+document.body.appendChild(transcriptDisplay);  // Add the paragraph to the body of the document
+let cleanupButton = document.createElement('button');  // Create the 'Clean up and summarize' button
+cleanupButton.textContent = 'Clean up and summarize';
+document.body.appendChild(cleanupButton);  // Add the button to the body of the document
+cleanupButton.style.display = 'none';  // Hide the button until we have a transcript
+let transcript;  // This will hold the transcript from Whisper
 
 function startRecording() {
     recordedBlobs = [];
@@ -55,7 +62,9 @@ function sendToWhisperAPI(audioBlob) {
         })
         .then(response => response.json())
         .then(data => {
-            sendToGptAPI(data.transcription);
+            transcript = data.transcription;
+            transcriptDisplay.textContent = 'Transcript: ' + transcript;  // Display the transcript
+            cleanupButton.style.display = 'block';  // Show the 'Clean up and summarize' button
         })
         .catch(error => {
             console.error('Error:', error);
@@ -65,14 +74,14 @@ function sendToWhisperAPI(audioBlob) {
     reader.readAsDataURL(audioBlob);
 }
 
-function sendToGptAPI(transcription) {
+function sendToGptAPI() {
     fetch('/api/gpt', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            'prompt': 'Please clean up and summarize the following transcription:\n' + transcription,
+            'prompt': 'Please clean up and summarize the following transcription:\n' + transcript,
             'max_tokens': 60
         })
     })
@@ -96,4 +105,9 @@ recordButton.addEventListener('click', () => {
             startRecording();
         });
     }
+});
+
+cleanupButton.addEventListener('click', () => {
+    cleanupButton.style.display = 'none';  // Hide the button while processing
+    sendToGptAPI();
 });
