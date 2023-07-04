@@ -18,6 +18,8 @@ module.exports = async (req, res) => {
     });
 
     if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      console.error('Whisper API error:', errorText);
       throw new Error('Whisper API request failed');
     }
 
