@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const multer = require('multer');
 const upload = multer();
+app.use(upload.any());
 
 module.exports = async (req, res) => {
     upload.single('file')(req, res, async (err) => {
@@ -25,10 +26,10 @@ module.exports = async (req, res) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    file: base64Audio,
-                    model: 'whisper-1',
-                    language: 'en',
-                }),
+                  file: req.files[0].buffer.toString('base64'),
+                  model: 'whisper-1',
+                  language: 'en',
+              }),              
             });
 
             if (!response.ok) {

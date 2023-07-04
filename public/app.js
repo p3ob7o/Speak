@@ -48,6 +48,11 @@ function handleDataAvailable(event) {
 function sendToWhisperAPI(audioBlob) {
     let formData = new FormData();
     formData.append('file', audioBlob);
+    
+    // Log the FormData entries
+    for (let pair of formData.entries()) {
+        console.log(pair[0]+ ', ' + pair[1]); 
+    }
 
     fetch('/api/whisper', { method: 'POST', body: formData })
         .then(response => {
