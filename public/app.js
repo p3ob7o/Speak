@@ -61,10 +61,11 @@ function sendToWhisperAPI(audioBlob) {
             })
         })
         .then(response => {
-            if (!response.ok) {
+            if (response.ok) {
+                return response.json();
+            } else {
                 throw new Error('Whisper API request failed');
             }
-            return response.json();
         })
         .then(data => {
             transcript = data.transcription;
@@ -73,11 +74,9 @@ function sendToWhisperAPI(audioBlob) {
         })
         .catch(error => {
             console.error('Error:', error);
-            if (error instanceof SyntaxError) {
-                response.text().then(errorText => {
-                    console.error('Error response:', errorText);
-                });
-            }
+            console.error('Whisper API error:', error.message);
+            transcriptDisplay.textContent = 'Transcript: Error retrieving transcription';
+            cleanupButton.style.display = 'none';
         });
     };
 
