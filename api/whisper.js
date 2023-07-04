@@ -11,8 +11,13 @@ module.exports = async (req, res) => {
             'audio_data': req.body.audio_data
         })
     });
-    
-    const data = await response.json();
 
-    res.json(data);
+    if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error('Whisper API error:', errorMessage);
+        res.status(response.status).send(errorMessage);
+    } else {
+        const data = await response.json();
+        res.json(data);
+    }
 };
