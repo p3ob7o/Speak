@@ -49,7 +49,7 @@ function sendToWhisperAPI(audioBlob) {
     const reader = new FileReader();
 
     reader.onloadend = function() {
-        const base64Audio = reader.result.split(',')[1];
+        const base64Audio = reader.result.split(',')[1];  // This splits off the data URL header
 
         fetch('/api/whisper', {
             method: 'POST',
@@ -79,6 +79,10 @@ function sendToWhisperAPI(audioBlob) {
             cleanupButton.style.display = 'none';
         });
     };
+
+    reader.readAsDataURL(audioBlob);
+}
+
 
     reader.readAsDataURL(audioBlob);
 }
