@@ -83,11 +83,6 @@ function sendToWhisperAPI(audioBlob) {
     reader.readAsDataURL(audioBlob);
 }
 
-
-    reader.readAsDataURL(audioBlob);
-}
-
-
 function sendToGptAPI() {
     fetch('/api/gpt', {
         method: 'POST',
