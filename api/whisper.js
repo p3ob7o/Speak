@@ -1,23 +1,30 @@
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-    const response = await fetch('https://api.openai.com/v1/whisper/recognize', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            'audio_data': req.body.audio_data
-        })
+  try {
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
+      },
+      body: {
+        file: req.body.audio_data,
+        model: 'whisper-1',
+        prompt: '', // Enter your prompt here if needed
+        response_format: 'json', // Set the desired response format (json, text, srt, verbose_json, vtt)
+        temperature: 0, // Set the desired temperature value (0 to 1)
+        language: '', // Set the input audio language in ISO-639-1 format if known
+      },
     });
 
     if (!response.ok) {
-        const errorMessage = await response.text();
-        console.error('Whisper API error:', errorMessage);
-        res.status(response.status).send(errorMessage);
-    } else {
-        const data = await response.json();
-        res.json(data);
+      throw new Error('Whisper API request failed');
     }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Whisper API request failed' });
+  }
 };
