@@ -46,13 +46,9 @@ function handleDataAvailable(event) {
 }
 
 function sendToWhisperAPI(audioBlob) {
+    let file = new File([audioBlob], "audioFile.webm", { type: "audio/webm" });
     let formData = new FormData();
-    formData.append('file', audioBlob);
-    
-    // Log the FormData entries
-    for (let pair of formData.entries()) {
-        console.log(pair[0]+ ', ' + pair[1]); 
-    }
+    formData.append('file', file);
 
     fetch('/api/whisper', { method: 'POST', body: formData })
         .then(response => {
