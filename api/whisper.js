@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
   try {
@@ -11,10 +11,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         file: req.body.audio_data,
         model: 'whisper-1',
-        prompt: '', // Enter your prompt here if needed
-        response_format: 'json', // Set the desired response format (json, text, srt, verbose_json, vtt)
-        temperature: 0, // Set the desired temperature value (0 to 1)
-        language: 'en', // Set the input audio language in ISO-639-1 format if known
+        language: 'en',
       }),
     });
 
