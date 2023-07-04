@@ -51,7 +51,7 @@ function sendToWhisperAPI(audioBlob) {
     reader.onloadend = function() {
         const base64Audio = reader.result.split(',')[1];
 
-        fetch('/api/whisper.js', {  // Corrected endpoint to '/api/whisper.js'
+        fetch('/api/whisper', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -73,6 +73,7 @@ function sendToWhisperAPI(audioBlob) {
 
     reader.readAsDataURL(audioBlob);
 }
+
 
 
 function sendToGptAPI() {
