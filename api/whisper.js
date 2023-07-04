@@ -22,6 +22,7 @@ module.exports = async (req, res) => {
     }
 
     const data = await response.json();
+    console.log('Whisper API response:', data); // Log the API response
     res.json(data);
   } catch (error) {
     console.error('Error:', error);
