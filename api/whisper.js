@@ -1,7 +1,12 @@
 const fetch = require('node-fetch');
+const multer = require('multer');
+const upload = multer();
 
-module.exports = async (req, res) => {
+module.exports = upload.single('file'), async (req, res) => {
   try {
+    const buffer = req.file.buffer;
+    const base64Audio = buffer.toString('base64');
+    
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
@@ -9,7 +14,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        file: req.body.audio_data,
+        file: base64Audio,
         model: 'whisper-1',
         language: 'en',
       }),

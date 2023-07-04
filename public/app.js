@@ -1,13 +1,13 @@
 let mediaRecorder;
 let recordedBlobs;
-let recordButton = document.querySelector('button');  // Get a reference to the button
-let transcriptDisplay = document.createElement('p');  // Create a paragraph to display the transcript
-document.body.appendChild(transcriptDisplay);  // Add the paragraph to the body of the document
-let cleanupButton = document.createElement('button');  // Create the 'Clean up and summarize' button
+let recordButton = document.querySelector('button');
+let transcriptDisplay = document.createElement('p');
+document.body.appendChild(transcriptDisplay);
+let cleanupButton = document.createElement('button');
 cleanupButton.textContent = 'Clean up and summarize';
-document.body.appendChild(cleanupButton);  // Add the button to the body of the document
-cleanupButton.style.display = 'none';  // Hide the button until we have a transcript
-let transcript;  // This will hold the transcript from Whisper
+document.body.appendChild(cleanupButton);
+cleanupButton.style.display = 'none';
+let transcript;
 
 function startRecording() {
     recordedBlobs = [];
@@ -26,13 +26,13 @@ function startRecording() {
         console.log('Recorder stopped: ', event);
         console.log('Recorded Blobs: ', recordedBlobs);
         sendToWhisperAPI(new Blob(recordedBlobs, {type: 'audio/webm'}));
-        recordButton.textContent = 'Start Recording';  // Change button text to 'Start Recording'
+        recordButton.textContent = 'Start Recording';
     };
 
     mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.start(10);  // collect 10ms of data
+    mediaRecorder.start(10);
     console.log('MediaRecorder started', mediaRecorder);
-    recordButton.textContent = 'Stop Recording';  // Change button text to 'Stop Recording'
+    recordButton.textContent = 'Stop Recording';
 }
 
 function stopRecording() {
@@ -46,20 +46,10 @@ function handleDataAvailable(event) {
 }
 
 function sendToWhisperAPI(audioBlob) {
-    const reader = new FileReader();
+    let formData = new FormData();
+    formData.append('file', audioBlob);
 
-    reader.onloadend = function() {
-        const base64Audio = reader.result.split(',')[1];  // This splits off the data URL header
-
-        fetch('/api/whisper', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'audio_data': base64Audio
-            })
-        })
+    fetch('/api/whisper', { method: 'POST', body: formData })
         .then(response => {
             if (response.ok) {
                 return response.json();
@@ -69,8 +59,8 @@ function sendToWhisperAPI(audioBlob) {
         })
         .then(data => {
             transcript = data.transcription;
-            transcriptDisplay.textContent = 'Transcript: ' + transcript;  // Display the transcript
-            cleanupButton.style.display = 'block';  // Show the 'Clean up and summarize' button
+            transcriptDisplay.textContent = 'Transcript: ' + transcript;
+            cleanupButton.style.display = 'block';
         })
         .catch(error => {
             console.error('Error:', error);
@@ -78,9 +68,6 @@ function sendToWhisperAPI(audioBlob) {
             transcriptDisplay.textContent = 'Transcript: Error retrieving transcription';
             cleanupButton.style.display = 'none';
         });
-    };
-
-    reader.readAsDataURL(audioBlob);
 }
 
 function sendToGptAPI() {
@@ -117,6 +104,6 @@ recordButton.addEventListener('click', () => {
 });
 
 cleanupButton.addEventListener('click', () => {
-    cleanupButton.style.display = 'none';  // Hide the button while processing
+    cleanupButton.style.display = 'none';
     sendToGptAPI();
 });
