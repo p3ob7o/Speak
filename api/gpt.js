@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 module.exports = async (req, res) => {
     const response = await fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
