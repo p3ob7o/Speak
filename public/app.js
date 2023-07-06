@@ -1,110 +1,67 @@
-let mediaRecorder;
-let recordedBlobs;
-let recordButton = document.querySelector('button');
-let transcriptDisplay = document.createElement('p');
-document.body.appendChild(transcriptDisplay);
-let cleanupButton = document.createElement('button');
-cleanupButton.textContent = 'Clean up and summarize';
-document.body.appendChild(cleanupButton);
-cleanupButton.style.display = 'none';
-let transcript;
+let recording = false;
+let audioRecorder;
+let audioBlob;
 
-function startRecording() {
-    recordedBlobs = [];
-    let options = {mimeType: 'audio/webm'};
-
-    try {
-        mediaRecorder = new MediaRecorder(window.stream, options);
-    } catch (e) {
-        console.error('Exception while creating MediaRecorder:', e);
-        return;
+function toggleRecording() {
+    if (!recording) {
+        startRecording();
+    } else {
+        stopRecording();
     }
+}
 
-    console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+async function startRecording() {
+    recording = true;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioRecorder = new MediaRecorder(stream);
+    let audioChunks = [];
 
-    mediaRecorder.onstop = (event) => {
-        console.log('Recorder stopped: ', event);
-        console.log('Recorded Blobs: ', recordedBlobs);
-        sendToWhisperAPI(new Blob(recordedBlobs, {type: 'audio/webm'}));
-        recordButton.textContent = 'Start Recording';
-    };
+    audioRecorder.addEventListener('dataavailable', event => {
+        audioChunks.push(event.data);
+    });
 
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.start(10);
-    console.log('MediaRecorder started', mediaRecorder);
-    recordButton.textContent = 'Stop Recording';
+    audioRecorder.addEventListener('stop', () => {
+        audioBlob = new Blob(audioChunks);
+        audioChunks = [];
+        transcribeAudio();
+    });
+
+    audioRecorder.start();
+    document.getElementById('recordButton').textContent = 'Stop Recording';
 }
 
 function stopRecording() {
-    mediaRecorder.stop();
+    audioRecorder.stop();
+    document.getElementById('recordButton').textContent = 'Start Recording';
+    recording = false;
 }
 
-function handleDataAvailable(event) {
-    if (event.data && event.data.size > 0) {
-        recordedBlobs.push(event.data);
-    }
+async function transcribeAudio() {
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+
+    const whisperResponse = await fetch('/api/whisper', {
+        method: 'POST',
+        body: formData,
+    });
+
+    const whisperData = await whisperResponse.json();
+    const transcription = whisperData.transcript;
+    sendToGPT(transcription);
 }
 
-function sendToWhisperAPI(audioBlob) {
-    let file = new File([audioBlob], "audioFile.webm", { type: "audio/webm" });
-    let formData = new FormData();
-    formData.append('file', file);
-
-    fetch('/api/whisper', { method: 'POST', body: formData })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Whisper API request failed');
-            }
-        })
-        .then(data => {
-            transcript = data.transcription;
-            transcriptDisplay.textContent = 'Transcript: ' + transcript;
-            cleanupButton.style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            console.error('Whisper API error:', error.message);
-            transcriptDisplay.textContent = 'Transcript: Error retrieving transcription';
-            cleanupButton.style.display = 'none';
-        });
-}
-
-function sendToGptAPI() {
-    fetch('/api/gpt', {
+async function sendToGPT(transcription) {
+    const gptResponse = await fetch('/api/gpt', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'prompt': 'Please clean up and summarize the following transcription:\n' + transcript,
-            'max_tokens': 60
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data.choices[0].text);
-    })
-    .catch(error => {
-        console.error('Error:', error);
+            'prompt': `Please clean up and summarize the following transcription: ${transcription}`,
+            'max_tokens': 200
+        }),
     });
+
+    const gptData = await gptResponse.json();
+    document.getElementById('transcription').textContent = gptData.choices[0].text;
 }
-
-
-recordButton.addEventListener('click', () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        stopRecording();
-    } else {
-        navigator.mediaDevices.getUserMedia({audio: true, video: false})
-        .then((stream) => {
-            window.stream = stream;
-            startRecording();
-        });
-    }
-});
-
-cleanupButton.addEventListener('click', () => {
-    cleanupButton.style.display = 'none';
-    sendToGptAPI();
-});

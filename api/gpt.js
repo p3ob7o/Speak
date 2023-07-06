@@ -1,16 +1,21 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 module.exports = async (req, res) => {
-    const response = await fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(req.body)
-    });
-    
-    const data = await response.json();
+    if (req.method === 'POST') {
+        const prompt = req.body.prompt;
+        const max_tokens = req.body.max_tokens;
 
-    res.json(data);
+        const gptResponse = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
+            prompt,
+            max_tokens
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_KEY}`
+            }
+        });
+
+        res.status(200).json(gptResponse.data);
+    } else {
+        res.status(405).send('Method not allowed');
+    }
 };

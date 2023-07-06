@@ -1,43 +1,29 @@
-const fetch = require('node-fetch');
-const multer = require('multer');
-const upload = multer();
+// Import axios and FormData
+const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
+const util = require('util');
+const streamPipeline = util.promisify(require('stream').pipeline);
 
 module.exports = async (req, res) => {
-  upload.any()(req, res, async function(err) {
-    if (err instanceof multer.MulterError) {
-      res.status(500).json({ error: 'Multer error: ' + err.message });
-      return;
-    } else if (err) {
-      res.status(500).json({ error: 'Unknown error: ' + err.message });
-      return;
+    if (req.method === 'POST') {
+        const file = req.files.audio.data;
+        const formData = new FormData();
+        formData.append('audio', file, {
+            filename: 'audio.wav',
+            contentType: 'audio/wav',
+            knownLength: file.length
+        });
+
+        const whisperResponse = await axios.post('https://api.openai.com/v1/whisper/recognize', formData, {
+            headers: {
+                ...formData.getHeaders(),
+                'Authorization': `Bearer ${process.env.OPENAI_KEY}`
+            }
+        });
+
+        res.status(200).json(whisperResponse.data);
+    } else {
+        res.status(405).send('Method not allowed');
     }
-
-    try {
-      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          file: req.files[0].buffer.toString('base64'),
-          model: 'whisper-1',
-          language: 'en',
-        }),
-      });
-
-      if (!response.ok) {
-        const errorResponse = await response.json();
-        console.error('Whisper API error:', errorResponse.error.message);
-        throw new Error('Whisper API request failed');
-      }
-
-      const data = await response.json();
-      console.log('Whisper API response:', data);
-      res.json(data);
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: 'Whisper API request failed' });
-    }
-  });
 };

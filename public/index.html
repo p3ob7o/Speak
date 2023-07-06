@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Audio Transcription App</title>
-    <link href="output.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Whisper-GPT App</title>
 </head>
-<body class="p-4">
-    <button id="recordButton" class="p-2 bg-blue-500 text-white">Start Recording</button>
+<body>
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl mb-4">Whisper-GPT App</h1>
+        <button id="recordButton" class="px-4 py-2 rounded bg-blue-500 text-white" onclick="toggleRecording()">
+            Start Recording
+        </button>
+        <p id="transcription" class="mt-4"></p>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
