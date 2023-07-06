@@ -36,19 +36,22 @@ function stopRecording() {
     recording = false;
 }
 
-async function transcribeAudio() {
-    const formData = new FormData();
+async function transcribeAudio(audioBlob) {
+    let formData = new FormData();
     formData.append('audio', audioBlob);
 
-    const whisperResponse = await fetch('/api/whisper', {
+    let response = await fetch('/api/whisper', {
         method: 'POST',
-        body: formData,
+        body: formData
     });
 
-    const whisperData = await whisperResponse.json();
-    const transcription = whisperData.transcript;
-    sendToGPT(transcription);
+    let data = await response.json();
+
+    let transcription = data.alternatives[0].transcript;
+    console.log(transcription);
 }
+
+  
 
 async function sendToGPT(transcription) {
     const gptResponse = await fetch('/api/gpt', {
